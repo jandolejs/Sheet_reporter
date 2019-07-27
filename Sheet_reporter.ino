@@ -1,3 +1,4 @@
+#include "Universal.h"
 #include <Wire.h>
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
@@ -13,20 +14,20 @@ DHTesp dht;
 String header;
 #include "HTTPSRedirect.h"
 HTTPSRedirect* client = nullptr;
-const char* GScriptId = "AKfycbzZJqzfHHpzittJzD1cldv_hNi8MjEVtUOplIXUWumCO2kKvd91";
+const char* GScriptId = Sheet_reporter_GScripID;
 
 #define wifi_connect WiFiManager wifiManager; wifiManager.setConfigPortalTimeout(50); wifiManager.autoConnect("Honzovo")
 
 #define prom_interval 10
 #define DHT_pin D4
 
-// #define G_var_proj "HomeJ"
-// #define G_var_proj "GardenJ"
-// #define G_var_proj "HomeR"
-// #define G_var_proj "GardenR"
+// #define G_proj "HomeJ"
+#define G_proj "GardenJ"
+// #define G_proj "HomeR"
+// #define G_proj "GardenR"
 
 String
-    G_var_note, G_var_type,
+    G_var_note, G_var_type, G_var_proj = G_proj,
     Weather_humidity, Weather_temp;
 
 uint32_t
@@ -125,7 +126,12 @@ void upload(String _commands) {
     String _final = String("/macros/s/") + GScriptId + "/exec" + _commands;
     client->GET(_final, "script.google.com");
 
-    Main_interval = String(client->getResponseBody()).toInt();
+    int _response = String(client->getResponseBody()).toInt();
+    if (_response == 0) {
+        Serial.print("\nFailed! --response: " + String(client->getResponseBody()));
+    } else {
+        Main_interval = _response;
+    }
     //if (Main_interval < 1800) Main_interval = 1800;
     if (Main_interval > 3600) Main_interval = 3600;
     Serial.print("\nNew interval is: ");
