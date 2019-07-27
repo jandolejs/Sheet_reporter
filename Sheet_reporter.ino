@@ -18,6 +18,7 @@ const char* GScriptId = "AKfycbzZJqzfHHpzittJzD1cldv_hNi8MjEVtUOplIXUWumCO2kKvd9
 #define wifi_connect WiFiManager wifiManager; wifiManager.setConfigPortalTimeout(50); wifiManager.autoConnect("Honzovo")
 
 #define prom_interval 10
+#define DHT_pin D4
 
 // #define G_var_proj "HomeJ"
 // #define G_var_proj "GardenJ"
@@ -40,8 +41,8 @@ void sleepNow() {
 void setup() {
 
     Serial.begin(250000);
-    pinMode(D2, INPUT_PULLUP);
-    dht.setup(D4, DHTesp::DHT11);
+    // pinMode(D2, INPUT_PULLUP);
+    dht.setup(DHT_pin, DHTesp::DHT11);
 
     Main_interval = loadLong(prom_interval);
     if (Main_interval <    1) Main_interval =    1;
