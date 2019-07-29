@@ -34,9 +34,11 @@ function save(e) {
 
     var Sheet_name = _proj;
     var Loger_name = "Log";
+    var Archive_name = "Archive";
     var _time = new Date();
     var sh = ss.getSheetByName(Sheet_name); // sheet
     var sl = ss.getSheetByName(Loger_name);      // log
+    var sa = ss.getSheetByName(Archive_name); // sheet
 
     if (!sh) {
         Logger.log("No sheet found, creating " + Sheet_name);
@@ -44,7 +46,11 @@ function save(e) {
     }
     if (!sl) {
         Logger.log("No log sheet found, creating ");
-        sh = newSheet(Loger_name);
+        sl = newSheet(Loger_name);
+    }
+    if (!sa) {
+        Logger.log("No archive sheet found, creating ");
+        sa = newSheet(Archive_name);
     }
 
     var row = 4; // číslo nového řádku
@@ -59,16 +65,17 @@ function save(e) {
     var _max = sh.getRange("I3").getValue();
     _max = (1440/(_max/60));
     if (_max > 10) {deleteOld(sh, _max); }
-    sh.insertRowBefore(row);
-    sh.getRange("D1").setValue(_time);
 
-    sh.getRange("A"+row).setValue(_time);
-    sh.getRange("B"+row).setValue(_type);
-    sh.getRange("C"+row).setValue(_note);
-    sh.getRange("D"+row).setValue(_proj);
-    sh.getRange("E"+row).setValue("=(A4-A5)");
-    sh.getRange("F"+row).setValue(_humi);
-    sh.getRange("G"+row).setValue(_temp);
+    sh.insertRowBefore(row); sa.insertRowBefore(row);
+    sh.getRange("D1").setValue(_time); sa.getRange("D1").setValue(_time);
+
+    sh.getRange("A"+row).setValue(_time);       sa.getRange("A"+row).setValue(_time);
+    sh.getRange("B"+row).setValue(_type);       sa.getRange("B"+row).setValue(_type);
+    sh.getRange("C"+row).setValue(_note);       sa.getRange("C"+row).setValue(_note);
+    sh.getRange("D"+row).setValue(_proj);       sa.getRange("D"+row).setValue(_proj);
+    sh.getRange("E"+row).setValue("=(A4-A5)");  sa.getRange("E"+row).setValue("=(A4-A5)");
+    sh.getRange("F"+row).setValue(_humi);       sa.getRange("F"+row).setValue(_humi);
+    sh.getRange("G"+row).setValue(_temp);       sa.getRange("G"+row).setValue(_temp);
 
     return true;
 }
