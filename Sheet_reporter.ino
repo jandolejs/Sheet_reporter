@@ -52,7 +52,7 @@ void setup() {
 
         delay(1000); Serial.print(".");
 
-        if (millis() > 15*1000) {
+        if (millis() > 30*1000) {
             Serial.print("\nGoing to sleep. No WiFi!");
             sleepNow();
         }
