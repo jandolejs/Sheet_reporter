@@ -3,20 +3,21 @@
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
-#include <WiFiManager.h>
+
+#include <ESP8266WiFiMulti.h>
+ESP8266WiFiMulti wifiMulti;
 
 #include <ESP8266WebServer.h>
 WiFiServer server(80);
-
-#include "DHTesp.h"
-DHTesp dht;
 
 String header;
 #include "HTTPSRedirect.h"
 HTTPSRedirect* client = nullptr;
 const char* GScriptId = Sheet_reporter_GScripID;
 
-#define wifi_connect WiFiManager wifiManager; wifiManager.setConfigPortalTimeout(50); wifiManager.autoConnect("Honzovo")
+#include "DHTesp.h"
+DHTesp dht;
+
 
 #define prom_interval 10
 #define DHT_pin D4
@@ -44,26 +45,32 @@ void setup() {
     if (Main_interval <    1) Main_interval =    1;
     if (Main_interval > 3600) Main_interval = 3600;
 
-    wifi_connect;
-    delay(100); delay(100); delay(100);
-    if (WiFi.status() != WL_CONNECTED) {
-        Serial.print("\nGoing to sleep. No WiFi!");
-        sleepNow();
+    wifiMulti.addAP(Sheet_reporter_SSID_ryba, Sheet_reporter_PASS_ryba);
+    wifiMulti.addAP(Sheet_reporter_SSID_kolo, Sheet_reporter_PASS_kolo);
+
+    while (wifiMulti.run() != WL_CONNECTED) {
+
+        delay(1000); Serial.print(".");
+
+        if (millis() > 15*1000) {
+            Serial.print("\nGoing to sleep. No WiFi!");
+            sleepNow();
+        }
     }
 
-    int _temp = dht.getTemperature();
-    int _humi = dht.getHumidity();
-    Weather_temp     = String( _temp );
-    Weather_humidity = String( _humi );
+    // if (WiFi.status() != WL_CONNECTED) {Serial.print("\nGoing to sleep. No WiFi!"); sleepNow(); }
+
+    int _temp = dht.getTemperature(); Weather_temp     = String( _temp );
+    int _humi = dht.getHumidity();    Weather_humidity = String( _humi );
 
     speakUp(2); // 1-ping 2-weather
     saveLong(prom_interval, Main_interval);
-
     sleepNow();
 
 }
 void loop(){
 }
+
 
 void sleepNow() {
     Serial.print("\nGoing to sleep for: " + String(Main_interval));
