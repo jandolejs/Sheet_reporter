@@ -56,6 +56,9 @@ function save(e) {
     if (_type == "init") return;
     if (_note == "ping" && sh.getRange("J3").getValue() != "Yes") return;
 
+    var _max = sh.getRange("I3").getValue();
+    _max = (1440/(_max/60));
+    if (_max > 10) {deleteOld(sh, _max); }
     sh.insertRowBefore(row);
     sh.getRange("D1").setValue(_time);
 
@@ -98,4 +101,12 @@ function newSheet(Sheet_name) {
         _newSheet.getRange("J3").setValue("1");
 
     return _newSheet;
+}
+
+function deleteOld(sheet, maxRows) {
+    try{
+        var count = sheet.getMaxRows();
+        if (sheet.getMaxRows() < 15) return;
+        sheet.deleteRows(maxRows, count - maxRows);
+    } catch (err){}
 }
