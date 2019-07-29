@@ -20,12 +20,12 @@ function doGet(e) {
 
     if (e.parameter.proj == "GardenJ") {return ContentService.createTextOutput(SpreadsheetApp.openById(Sheet_ID).getSheetByName("GardenJ").getRange("I3").getValue()); }
     if (e.parameter.proj ==  "HomeR" ) {return ContentService.createTextOutput(SpreadsheetApp.openById(Sheet_ID).getSheetByName( "HomeR" ).getRange("I3").getValue()); }
-    
+
     return ContentService.createTextOutput(saved);
 }
 
 function save(e) {
-    
+
     var _proj = e.parameter.proj;
     var _type = e.parameter.type;
     var _note = e.parameter.note;

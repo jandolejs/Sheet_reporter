@@ -21,6 +21,7 @@ const char* GScriptId = Sheet_reporter_GScripID;
 #define prom_interval 10
 #define DHT_pin D4
 
+// Choose name:
 // #define G_proj "HomeJ"
 #define G_proj "GardenJ"
 // #define G_proj "HomeR"
@@ -34,15 +35,9 @@ uint32_t
     Main_interval;
 
 
-
-void sleepNow() {
-    Serial.print("\nGoing to sleep for: " + String(Main_interval));
-    ESP.deepSleep(Main_interval*1000000);
-}
 void setup() {
 
     Serial.begin(250000);
-    // pinMode(D2, INPUT_PULLUP);
     dht.setup(DHT_pin, DHTesp::DHT11);
 
     Main_interval = loadLong(prom_interval);
@@ -50,7 +45,7 @@ void setup() {
     if (Main_interval > 3600) Main_interval = 3600;
 
     wifi_connect;
-    delay(100); delay(100); delay(100); 
+    delay(100); delay(100); delay(100);
     if (WiFi.status() != WL_CONNECTED) {
         Serial.print("\nGoing to sleep. No WiFi!");
         sleepNow();
@@ -65,13 +60,15 @@ void setup() {
     saveLong(prom_interval, Main_interval);
 
     sleepNow();
-    
 
 }
 void loop(){
 }
 
-
+void sleepNow() {
+    Serial.print("\nGoing to sleep for: " + String(Main_interval));
+    ESP.deepSleep(Main_interval*1000000);
+}
 void saveLong(byte _address, long _value) {
     byte four = ( _value & 0xFF );
     byte three = ( ( _value >> 8 ) & 0xFF );
