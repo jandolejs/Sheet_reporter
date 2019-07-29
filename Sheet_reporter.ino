@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
-#include <WiFiManager.h>
+#include <WiFiManager.h> // nefunguje multiple wifi, switching to wifiMulti
 
 #include <ESP8266WebServer.h>
 WiFiServer server(80);
