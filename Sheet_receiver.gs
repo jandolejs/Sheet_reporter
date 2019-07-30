@@ -40,18 +40,9 @@ function save(e) {
     var sl = ss.getSheetByName(Loger_name);      // log
     var sa = ss.getSheetByName(Archive_name); // sheet
 
-    if (!sh) {
-        Logger.log("No sheet found, creating " + Sheet_name);
-        sh = newSheet(Sheet_name);
-    }
-    if (!sl) {
-        Logger.log("No log sheet found, creating ");
-        sl = newSheet(Loger_name);
-    }
-    if (!sa) {
-        Logger.log("No archive sheet found, creating ");
-        sa = newSheet(Archive_name);
-    }
+    if (!sh) {sh = newSheet( Sheet_name ); }
+    if (!sl) {sl = newSheet( Loger_name ); }
+    if (!sa) {sa = newSheet(Archive_name); }
 
     var row = 4; // číslo nového řádku
 
@@ -62,9 +53,8 @@ function save(e) {
     if (_type == "init") return;
     if (_note == "ping" && sh.getRange("J3").getValue() != "Yes") return;
 
-    var _max = sh.getRange("I3").getValue();
-    _max = (1440/(_max/60));
-    if (_max > 10) {deleteOld(sh, _max); }
+    var _interval = sh.getRange("I3").getValue();
+    deleteOld(sh, _interval);
 
     sh.insertRowBefore(row); sa.insertRowBefore(row);
     sh.getRange("D1").setValue(_time); sa.getRange("D1").setValue(_time);
@@ -73,7 +63,7 @@ function save(e) {
     sh.getRange("B"+row).setValue(_type);       sa.getRange("B"+row).setValue(_type);
     sh.getRange("C"+row).setValue(_note);       sa.getRange("C"+row).setValue(_note);
     sh.getRange("D"+row).setValue(_proj);       sa.getRange("D"+row).setValue(_proj);
-    sh.getRange("E"+row).setValue("=(A4-A5)");  sa.getRange("E"+row).setValue("=(A4-A5)");
+    sh.getRange("E"+row).setValue("=(A4-A5)");
     sh.getRange("F"+row).setValue(_humi);       sa.getRange("F"+row).setValue(_humi);
     sh.getRange("G"+row).setValue(_temp);       sa.getRange("G"+row).setValue(_temp);
 
@@ -90,13 +80,13 @@ function newSheet(Sheet_name) {
     _newSheet.getRange("C1").setValue("Last entry:" );
 
     _newSheet.getRange("A2").setValue("Since last seen:");
-    _newSheet.getRange("B2").setValue("=((NOW())-D1)");
+    _newSheet.getRange("B2").setValue( "=((NOW())-D1)"  );
 
     _newSheet.getRange("A3").setValue("Time");
     _newSheet.getRange("B3").setValue("Type");
-    _newSheet.getRange("C3").setValue("Message");
+    _newSheet.getRange("C3").setValue( "Message" );
     _newSheet.getRange("D3").setValue("Device ID");
-    _newSheet.getRange("E3").setValue("Delayed");
+    _newSheet.getRange("E3").setValue( "Delayed" );
     _newSheet.getRange("F3").setValue("Humi");
     _newSheet.getRange("G3").setValue("Temp");
 
@@ -110,10 +100,11 @@ function newSheet(Sheet_name) {
     return _newSheet;
 }
 
-function deleteOld(sheet, maxRows) {
+function deleteOld(sheet, interval) {
     try{
+        if (sheet.getMaxRows() < 14) return;
         var count = sheet.getMaxRows();
-        if (sheet.getMaxRows() < 15) return;
-        sheet.deleteRows(maxRows, count - maxRows);
+        lastRow = (1440/(interval/60));
+        sheet.deleteRows(lastRow, count - lastRow);
     } catch (err){}
 }
