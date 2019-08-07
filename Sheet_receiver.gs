@@ -26,46 +26,48 @@ function doGet(e) {
 
 function save(e) {
 
-    var _proj = e.parameter.proj;
-    var _type = e.parameter.type;
-    var _note = e.parameter.note;
-    var _temp = e.parameter.temp;
-    var _humi = e.parameter.humi;
+    var  row  = 4; // číslo nového řádku
+    var time = new Date();
 
-    var Sheet_name = _proj;
-    var Loger_name = "Log";
-    var Archive_name = "Archive";
-    var _time = new Date();
-    var sh = ss.getSheetByName(Sheet_name); // sheet
-    var sl = ss.getSheetByName(Loger_name);      // log
-    var sa = ss.getSheetByName(Archive_name); // sheet
+    var proj = e.parameter.proj;
+    var type = e.parameter.type;
+    var note = e.parameter.note;
+    var temp = e.parameter.temp;
+    var humi = e.parameter.humi;
 
-    if (!sh) {sh = newSheet( Sheet_name ); }
-    if (!sl) {sl = newSheet( Loger_name ); }
-    if (!sa) {sa = newSheet(Archive_name); }
+ // Get sheets
+    var sh = ss.getSheetByName( proj ); // sheet
+    var sl = ss.getSheetByName( "Logg" ); // log
+    var sa = ss.getSheetByName( "Archiv" ); // archive
 
-    var row = 4; // číslo nového řádku
+ // Create new if not found
+    if ( !sh ) { sh = newSheet( proj ); }
+    if ( !sl ) { sl = newSheet( "Logg" ); }
+    if ( !sa ) { sa = newSheet( "Archiv" ); }
 
+ // Log request
     sl.insertRowBefore(row);
-    sl.getRange("A"+row).setValue(_time);
+    sl.getRange("A"+row).setValue(time);
     sl.getRange("B"+row).setValue(e.queryString);
 
-    if (_type == "init") return;
-    if (_note == "ping" && sh.getRange("J3").getValue() != "Yes") return;
+ // Dont write init or ping
+    if (type == "init") return true;
+    if (note == "ping" && sh.getRange("J3").getValue() != "Yes") return true;
 
+ // Delete values older than 24h
     var _interval = sh.getRange("I3").getValue();
     deleteOld(sh, _interval);
 
-    sh.insertRowBefore(row); sa.insertRowBefore(row);
-    sh.getRange("D1").setValue(_time); sa.getRange("D1").setValue(_time);
-
-    sh.getRange("A"+row).setValue(_time);       sa.getRange("A"+row).setValue(_time);
-    sh.getRange("B"+row).setValue(_type);       sa.getRange("B"+row).setValue(_type);
-    sh.getRange("C"+row).setValue(_note);       sa.getRange("C"+row).setValue(_note);
-    sh.getRange("D"+row).setValue(_proj);       sa.getRange("D"+row).setValue(_proj);
+ // Write to Sheet (proj)                   // Also write to archive
+    sh.insertRowBefore(row);                    sa.insertRowBefore(row);
+    sh.getRange("D1").setValue(time);          sa.getRange("D1").setValue(time);
+    sh.getRange("A"+row).setValue(time);       sa.getRange("A"+row).setValue(time);
+    sh.getRange("B"+row).setValue(type);       sa.getRange("B"+row).setValue(type);
+    sh.getRange("C"+row).setValue(note);       sa.getRange("C"+row).setValue(note);
+    sh.getRange("D"+row).setValue(proj);       sa.getRange("D"+row).setValue(proj);
     sh.getRange("E"+row).setValue("=(A4-A5)");
-    sh.getRange("F"+row).setValue(_humi);       sa.getRange("F"+row).setValue(_humi);
-    sh.getRange("G"+row).setValue(_temp);       sa.getRange("G"+row).setValue(_temp);
+    sh.getRange("F"+row).setValue(humi);       sa.getRange("F"+row).setValue(humi);
+    sh.getRange("G"+row).setValue(temp);       sa.getRange("G"+row).setValue(temp);
 
     return true;
 }
@@ -106,5 +108,6 @@ function deleteOld(sheet, interval) {
         var count = sheet.getMaxRows();
         lastRow = (1440/(interval/60));
         sheet.deleteRows(lastRow, count - lastRow);
+        sheet.getRange("E" + (sheet.getMaxRows()-1)).setValue(" ");
     } catch (err){}
 }
