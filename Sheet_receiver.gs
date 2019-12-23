@@ -1,113 +1,137 @@
 /* HomeLED
 
+Examples:
 https://script.google.com/macros/s/AKfycbzZJqzfHHpzittJzD1cldv_hNi8MjEVtUOplIXUWumCO2kKvd91/exec
 https://script.google.com/macros/s/AKfycbzZJqzfHHpzittJzD1cldv_hNi8MjEVtUOplIXUWumCO2kKvd91/exec?type=1&note=ping&proj=homeled
 https://script.google.com/macros/s/AKfycbzZJqzfHHpzittJzD1cldv_hNi8MjEVtUOplIXUWumCO2kKvd91/exec?type=-1&proj=browser&note=test,%20zkouška&
 
+Device list:
+    tester - using for testing for now
+
+Error list:
+    #auth_error - you must use some device name .../exec?proj="String"
+    #template_missing -
  */
 
-var Sheet_ID = "1aEbCdOxYq2LalEMmNKb_MugKUkqUBYi9fSOhFC0cofM"
-var ss = SpreadsheetApp.openById(Sheet_ID);
+var Spreadsheet_ID = "1aEbCdOxYq2LalEMmNKb_MugKUkqUBYi9fSOhFC0cofM"
+
+var Possible_projs = ["Tester", "MyMain"]
+
+var Control_devName_col = 1; // column where device name is stored
+var Control_active_col  = 2; // column where - is device active?
+var Control_logPing_col = 3; // column where logg ping setting is
+var Stat_active_last    = 4; // column when device was last active
+var Stat_room_temp      = 5;
+var Stat_room_light     = 6;
+var Stat_room_door      = 7;
+var Stat_room_window    = 8;
+var Stat_room_movement  = 9;
+
+var MyMain_name = "MyMain";
+var MyMain_row = 10;
+
+var Tester_name = "Tester";
+var Tester_row = 10;
+
 
 function doGet(e) {
 
     console.info(e);
 
-    if (e == undefined) {e = {}; e.parameters = {proj:"editor", type:"-1", note:"TEST"}; }
-    if (!e.parameters.proj) return ContentService.createTextOutput("0 - unauthorized - use some device name (?proj=name)");
+    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-doGet", runtime="12345"}; }
+    if (!e.parameters.proj) return ContentService.createTextOutput("0 - #auth_error");
 
-    var saved = save(e);
-
-    if (e.parameter.proj == "GardenJ") {return ContentService.createTextOutput(SpreadsheetApp.openById(Sheet_ID).getSheetByName("GardenJ").getRange("I3").getValue()); }
-    if (e.parameter.proj ==  "HomeR" ) {return ContentService.createTextOutput(SpreadsheetApp.openById(Sheet_ID).getSheetByName( "HomeR" ).getRange("I3").getValue()); }
-
-    return ContentService.createTextOutput(saved);
+    return ContentService.createTextOutput(save(e));
 }
 
 function save(e) {
 
-    var  row  = 4; // číslo nového řádku
-    var time = new Date();
+    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-save"}, runtime="12345"; }
+    var ss = SpreadsheetApp.openById(Spreadsheet_ID);
 
-    var proj = e.parameter.proj;
-    var type = e.parameter.type;
-    var note = e.parameter.note;
-    var temp = e.parameter.temp;
-    var humi = e.parameter.humi;
+    var proj = e.parameters.proj;
+    var type = e.parameters.type;
+    var note = e.parameters.note;
 
- // Get sheets
-    var sh = ss.getSheetByName( proj ); // sheet
-    var sl = ss.getSheetByName( "Logg" ); // log
-    var sa = ss.getSheetByName( "Archiv" ); // archive
+    var sd = findSheet(ss, proj);
+    var sl = findSheet(ss, "Log");
+    var sc = findSheet(ss, "Control");
 
- // Create new if not found
-    if ( !sh ) { sh = newSheet( proj ); }
-    if ( !sl ) { sl = newSheet( "Logg" ); }
-    if ( !sa ) { sa = newSheet( "Archiv" ); }
-
- // Log request
-    sl.insertRowBefore(row);
-    sl.getRange("A"+row).setValue(time);
-    sl.getRange("B"+row).setValue(e.queryString);
-
- // Dont write init or ping
-    if (type == "init") return true;
-    if (note == "ping" && sh.getRange("J3").getValue() != "Yes") return true;
-
- // Delete values older than 24h
-    var _interval = sh.getRange("I3").getValue();
-    deleteOld(sh, _interval);
-
- // Write to Sheet (proj)                   // Also write to archive
-    sh.insertRowBefore(row);                    sa.insertRowBefore(row);
-    sh.getRange("D1").setValue(time);          sa.getRange("D1").setValue(time);
-    sh.getRange("A"+row).setValue(time);       sa.getRange("A"+row).setValue(time);
-    sh.getRange("B"+row).setValue(type);       sa.getRange("B"+row).setValue(type);
-    sh.getRange("C"+row).setValue(note);       sa.getRange("C"+row).setValue(note);
-    sh.getRange("D"+row).setValue(proj);       sa.getRange("D"+row).setValue(proj);
-    sh.getRange("E"+row).setValue("=(A4-A5)");
-    sh.getRange("F"+row).setValue(humi);       sa.getRange("F"+row).setValue(humi);
-    sh.getRange("G"+row).setValue(temp);       sa.getRange("G"+row).setValue(temp);
-
-    return true;
+    newRecord(sl, e);
 }
 
-function newSheet(Sheet_name) {
+function newRecord(sh, e) {
 
-    _newSheet = ss.insertSheet();
-    _newSheet.setName(Sheet_name);
+    var sheet_name = sh.getSheetName();
 
-    _newSheet.getRange("A1").setValue("Device name:");
-    _newSheet.getRange("B1").setValue(  Sheet_name  );
-    _newSheet.getRange("C1").setValue("Last entry:" );
+    switch (sheet_name) { // write acording to sheet
 
-    _newSheet.getRange("A2").setValue("Since last seen:");
-    _newSheet.getRange("B2").setValue( "=((NOW())-D1)"  );
+        case "Control":
+        break;
 
-    _newSheet.getRange("A3").setValue("Time");
-    _newSheet.getRange("B3").setValue("Type");
-    _newSheet.getRange("C3").setValue( "Message" );
-    _newSheet.getRange("D3").setValue("Device ID");
-    _newSheet.getRange("E3").setValue( "Delayed" );
-    _newSheet.getRange("F3").setValue("Humi");
-    _newSheet.getRange("G3").setValue("Temp");
+        case "Log":
+        break;
 
-    _newSheet.getRange("I1").setValue("Setting");
-        _newSheet.getRange("I2").setValue("Interval [sec]");
-        _newSheet.getRange("I3").setValue("60");
-    _newSheet.getRange("J1").setValue("Setting");
-        _newSheet.getRange("J2").setValue("Log ping");
-        _newSheet.getRange("J3").setValue("1");
+        case Tester_name:
+        break;
 
-    return _newSheet;
+        case MyMain_name:
+        break;
+
+        default:
+        break;
+    }
+
 }
 
-function deleteOld(sheet, interval) {
-    try{
-        if (sheet.getMaxRows() < 14) return;
-        var count = sheet.getMaxRows();
-        lastRow = (1440/(interval/60));
-        sheet.deleteRows(lastRow, count - lastRow);
-        sheet.getRange("E" + (sheet.getMaxRows()-1)).setValue(" ");
-    } catch (err){}
+function findSheet(ss, Sheet_name) {
+
+    var sh = ss.getSheetByName(Sheet_name);
+    if (!sh) {
+        sh = ss.insertSheet();
+        sh.setName(Sheet_name);
+        sh.setFrozenRows(3);
+    }
+
+    useTemplate(sh); // regenerate sheet
+    return sh;
 }
+
+function useTemplate(sh) {
+
+    sh.getRange("A1").setValue("Name:");
+    var sheet_name = sh.getSheetName();
+
+    switch (sheet_name) { // use template for known sheets
+
+        case "Control":
+            sh.getRange("B1").setValue("Control");
+            sh.getRange(3, Control_devName_col).setValue("Device name");
+            sh.getRange(3, Control_active_col).setValue("Active");
+            sh.getRange(3, Control_logPing_col).setValue("Log Ping");
+            sh.getRange(3, Stat_active_last).setValue("Last active");
+        break;
+
+        case "Log":
+            sh.getRange("B1").setValue("Log");
+        break;
+
+        case Tester_name:
+            sh.getRange("B1").setValue("Testing sheet");
+        break;
+
+        case MyMain_name:
+            sh.getRange("B1").setValue("My room");
+        break;
+
+        default:
+            sh.getRange("B1").setValue("#template_missing");
+        break;
+    }
+
+    if (sheet_name == Tester_name) {
+        // additionals for Tester
+
+    }
+}
+
