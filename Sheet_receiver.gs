@@ -13,13 +13,18 @@ Error list:
     #template_missing - there is no template for this file
  */
 
-var Spreadsheet_ID = "1aEbCdOxYq2LalEMmNKb_MugKUkqUBYi9fSOhFC0cofM"
-
-var Possible_projs = ["Tester", "MyMain"]
+var Spreadsheet_ID = "1aEbCdOxYq2LalEMmNKb_MugKUkqUBYi9fSOhFC0cofM";
+var Possible_projs = ["Tester", "MyMain"];
+var Sheet_newLine  = 4;
 
 var Control_devName_col = 1; // column where device name is stored
 var Control_active_col  = 2; // column where - is device active?
 var Control_logPing_col = 3; // column where logg ping setting is
+
+var Log_date_col = 1;
+var Log_devName_col = 2;
+var Log_parameters_col = 3;
+
 var Stat_active_last    = 4; // column when device was last active
 var Stat_room_temp      = 5;
 var Stat_room_light     = 6;
@@ -31,7 +36,7 @@ var MyMain_name = "MyMain";
 var MyMain_row = 10;
 
 var Tester_name = "Tester";
-var Tester_row = 10;
+var Tester_row = 12;
 
 
 function doGet(e) {
@@ -70,6 +75,10 @@ function newRecord(sh, e) {
         break;
 
         case "Log":
+            sh.insertRowBefore(Sheet_newLine);
+            sh.getRange(Sheet_newLine, Log_date_col).setValue(new Date());
+            sh.getRange(Sheet_newLine, Log_devName_col).setValue(e.parameters.proj);
+            sh.getRange(Sheet_newLine, Log_parameters_col).setValue(e.queryString);
         break;
 
         case Tester_name:
@@ -93,7 +102,7 @@ function findSheet(ss, Sheet_name) {
         sh.setFrozenRows(3);
     }
 
-    useTemplate(sh); // regenerate sheet
+    useTemplate(sh); // regenerate sheet !todo: only for new file, add to menu
     return sh;
 }
 
@@ -114,10 +123,14 @@ function useTemplate(sh) {
 
         case "Log":
             sh.getRange("B1").setValue("Log");
+            sh.getRange(3, Log_date_col).setValue("Date");
+            sh.getRange(3, Log_devName_col).setValue("Device");
+            sh.getRange(3, Log_parameters_col).setValue("Parameters");
         break;
 
         case Tester_name:
             sh.getRange("B1").setValue("Testing sheet");
+            sh.getRange(3, )
         break;
 
         case MyMain_name:
@@ -127,11 +140,6 @@ function useTemplate(sh) {
         default:
             sh.getRange("B1").setValue("#template_missing");
         break;
-    }
-
-    if (sheet_name == Tester_name) {
-        // additionals for Tester
-
     }
 }
 
