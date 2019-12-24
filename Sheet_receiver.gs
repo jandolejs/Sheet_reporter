@@ -10,7 +10,7 @@ Device list:
 
 Error list:
     #auth_error - you must use some device name .../exec?proj="String"
-    #template_missing -
+    #template_missing - there is no template for this file
  */
 
 var Spreadsheet_ID = "1aEbCdOxYq2LalEMmNKb_MugKUkqUBYi9fSOhFC0cofM"
