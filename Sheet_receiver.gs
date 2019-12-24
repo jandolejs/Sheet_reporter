@@ -38,7 +38,7 @@ function doGet(e) {
 
     console.info(e);
 
-    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-doGet", runtime="12345"}; }
+    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-doGet", runtime:"12345"}; }
     if (!e.parameters.proj) return ContentService.createTextOutput("0 - #auth_error");
 
     return ContentService.createTextOutput(save(e));
@@ -46,7 +46,7 @@ function doGet(e) {
 
 function save(e) {
 
-    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-save"}, runtime="12345"; }
+    if (e == undefined) {e = {}; e.parameters = {proj:Tester_name, type:"-1", note:"TESTING-save", runtime:"12345"}; }
     var ss = SpreadsheetApp.openById(Spreadsheet_ID);
 
     var proj = e.parameters.proj;
